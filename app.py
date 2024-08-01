@@ -233,5 +233,5 @@ def recreate_db():
         print("Database recreated and admin user added.")
 
 if __name__ == '__main__':
-    recreate_db()  # This will recreate the database
-    app.run(debug=True)
+    debug_mode = os.environ.get('FLASK_ENV') == 'development'
+    app.run(debug=debug_mode)
