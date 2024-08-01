@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Create Bill - Billing System{% endblock %}
+
+{% block extra_head %}
+<style>
+    .bill-container {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+    .bill-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .bill-table th, .bill-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    .bill-table th {
+        background-color: #f2f2f2;
+    }
+    .bill-row {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .bill-cell {
+        flex: 1 1 100px;
+        padding: 5px;
+    }
+    .bill-cell input, .bill-cell select {
+        width: 100%;
+        padding: 5px;
+        box-sizing: border-box;
+    }
+    .totals {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+    .total-item {
+        margin-left: 20px;
+    }
+    @media (max-width: 768px) {
+        .bill-cell {
+            flex: 1 1 50%;
+        }
+    }
+    @media (max-width: 480px) {
+        .bill-cell {
+            flex: 1 1 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Create Bill</h1>
+<div class="bill-container">
+    <form id="billForm" method="POST">
+        <div id="billItems">
+            <div class="bill-row">
+                <div class="bill-cell"><strong>Product</strong></div>
+                <div class="bill-cell"><strong>HSN Code</strong></div>
+                <div class="bill-cell"><strong>Unit</strong></div>
+                <div class="bill-cell"><strong>Quantity</strong></div>
+                <div class="bill-cell"><strong>Rate</strong></div>
+                <div class="bill-cell"><strong>Amount</strong></div>
+                <div class="bill-cell"><strong>CGST%</strong></div>
+                <div class="bill-cell"><strong>CGST Amt</strong></div>
+                <div class="bill-cell"><strong>SGST%</strong></div>
+                <div class="bill-cell"><strong>SGST Amt</strong></div>
+                <div class="bill-cell"><strong>Action</strong></div>
+            </div>
+            <div class="bill-row" id="row_1">
+                <div class="bill-cell">
+                    <select name="product_1" class="product-select" data-row="1">
+                        <option value="">Select a product</option>
+                        {% for product in products %}
+                        <option value="{{ product.id }}">{{ product.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="bill-cell"><input type="text" name="hsn_1" readonly></div>
+                <div class="bill-cell"><input type="text" name="unit_1" readonly></div>
+                <div class="bill-cell"><input type="number" name="quantity_1" value="1" min="1" step="0.01"></div>
+                <div class="bill-cell"><input type="number" name="rate_1" readonly></div>
+                <div class="bill-cell"><input type="number" name="amount_1" readonly></div>
+                <div class="bill-cell"><input type="number" name="cgst_percent_1" value="9.00" readonly></div>
+                <div class="bill-cell"><input type="number" name="cgst_amount_1" readonly></div>
+                <div class="bill-cell"><input type="number" name="sgst_percent_1" value="9.00" readonly></div>
+                <div class="bill-cell"><input type="number" name="sgst_amount_1" readonly></div>
+                <div class="bill-cell"><button type="button" onclick="removeRow(this)">Remove</button></div>
+            </div>
+        </div>
+        <button type="button" onclick="addRow()">Add Product</button>
+        <div class="totals">
+            <div class="total-item">
+                <label for="subtotal">Subtotal:</label>
+                <input type="number" id="subtotal" name="subtotal" readonly>
+            </div>
+            <div class="total-item">
+                <label for="cgst_total">CGST Total:</label>
+                <input type="number" id="cgst_total" name="cgst_total" readonly>
+            </div>
+            <div class="total-item">
+                <label for="sgst_total">SGST Total:</label>
+                <input type="number" id="sgst_total" name="sgst_total" readonly>
+            </div>
+            <div class="total-item">
+                <label for="grand_total">Grand Total:</label>
+                <input type="number" id="grand_total" name="grand_total" readonly>
+            </div>
+        </div>
+        <input type="hidden" name="bill_data" id="billData">
+        <button type="submit">Generate Bill</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let rowCount = 1;
+
+    function addRow() {
+        rowCount++;
+        const newRow = `
+            <div class="bill-row" id="row_${rowCount}">
+                <div class="bill-cell">
+                    <select name="product_${rowCount}" class="product-select" data-row="${rowCount}">
+                        <option value="">Select a product</option>
+                        {% for product in products %}
+                        <option value="{{ product.id }}">{{ product.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="bill-cell"><input type="text" name="hsn_${rowCount}" readonly></div>
+                <div class="bill-cell"><input type="text" name="unit_${rowCount}" readonly></div>
+                <div class="bill-cell"><input type="number" name="quantity_${rowCount}" value="1" min="1" step="0.01"></div>
+                <div class="bill-cell"><input type="number" name="rate_${rowCount}" readonly></div>
+                <div class="bill-cell"><input type="number" name="amount_${rowCount}" readonly></div>
+                <div class="bill-cell"><input type="number" name="cgst_percent_${rowCount}" value="9.00" readonly></div>
+                <div class="bill-cell"><input type="number" name="cgst_amount_${rowCount}" readonly></div>
+                <div class="bill-cell"><input type="number" name="sgst_percent_${rowCount}" value="9.00" readonly></div>
+                <div class="bill-cell"><input type="number" name="sgst_amount_${rowCount}" readonly></div>
+                <div class="bill-cell"><button type="button" onclick="removeRow(this)">Remove</button></div>
+            </div>
+        `;
+        $('#billItems').append(newRow);
+    }
+
+    function removeRow(button) {
+        $(button).closest('.bill-row').remove();
+        updateTotals();
+    }
+
+    function updateRow(row) {
+        const productId = $(`select[name="product_${row}"]`).val();
+        if (productId) {
+            $.getJSON(`/get_product/${productId}`, function(data) {
+                $(`input[name="hsn_${row}"]`).val(data.hsn_code);
+                $(`input[name="unit_${row}"]`).val(data.unit);
+                $(`input[name="rate_${row}"]`).val(data.rate);
+                updateRowCalculations(row);
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                console.error(`Error fetching product data: ${textStatus}, ${errorThrown}`);
+            });
+        }
+    }
+
+    function updateRowCalculations(row) {
+        const quantity = parseFloat($(`input[name="quantity_${row}"]`).val()) || 0;
+        const rate = parseFloat($(`input[name="rate_${row}"]`).val()) || 0;
+        const amount = quantity * rate;
+        $(`input[name="amount_${row}"]`).val(amount.toFixed(2));
+
+        const cgstPercent = parseFloat($(`input[name="cgst_percent_${row}"]`).val()) || 0;
+        const sgstPercent = parseFloat($(`input[name="sgst_percent_${row}"]`).val()) || 0;
+
+        const cgstAmount = (amount * cgstPercent) / 100;
+        const sgstAmount = (amount * sgstPercent) / 100;
+
+        $(`input[name="cgst_amount_${row}"]`).val(cgstAmount.toFixed(2));
+        $(`input[name="sgst_amount_${row}"]`).val(sgstAmount.toFixed(2));
+
+        updateTotals();
+    }
+
+    function updateTotals() {
+        let subtotal = 0;
+        let cgstTotal = 0;
+        let sgstTotal = 0;
+
+        $('.bill-row').each(function() {
+            const amount = parseFloat($(this).find('input[name^="amount_"]').val()) || 0;
+            const cgstAmount = parseFloat($(this).find('input[name^="cgst_amount_"]').val()) || 0;
+            const sgstAmount = parseFloat($(this).find('input[name^="sgst_amount_"]').val()) || 0;
+
+            subtotal += amount;
+            cgstTotal += cgstAmount;
+            sgstTotal += sgstAmount;
+        });
+
+        $('#subtotal').val(subtotal.toFixed(2));
+        $('#cgst_total').val(cgstTotal.toFixed(2));
+        $('#sgst_total').val(sgstTotal.toFixed(2));
+
+        const grandTotal = subtotal + cgstTotal + sgstTotal;
+        $('#grand_total').val(grandTotal.toFixed(2));
+    }
+
+    $(document).on('change', '.product-select', function() {
+        updateRow($(this).data('row'));
+    });
+
+    $(document).on('input', 'input[name^="quantity_"]', function() {
+        updateRowCalculations($(this).attr('name').split('_')[1]);
+    });
+
+    $('#billForm').submit(function(e) {
+        e.preventDefault();
+        const billData = {
+            items: [],
+            subtotal: parseFloat($('#subtotal').val()),
+            cgst_total: parseFloat($('#cgst_total').val()),
+            sgst_total: parseFloat($('#sgst_total').val()),
+            grand_total: parseFloat($('#grand_total').val())
+        };
+    
+        $('.bill-row').each(function() {
+            const row = $(this);
+            const productId = row.find('select').val();
+            if (productId) {
+                billData.items.push({
+                    product_id: parseInt(productId),
+                    quantity: parseFloat(row.find('input[name^="quantity_"]').val()),
+                    rate: parseFloat(row.find('input[name^="rate_"]').val()),
+                    amount: parseFloat(row.find('input[name^="amount_"]').val()),
+                    cgst_percent: parseFloat(row.find('input[name^="cgst_percent_"]').val()),
+                    cgst_amount: parseFloat(row.find('input[name^="cgst_amount_"]').val()),
+                    sgst_percent: parseFloat(row.find('input[name^="sgst_percent_"]').val()),
+                    sgst_amount: parseFloat(row.find('input[name^="sgst_amount_"]').val())
+                });
+            }
+        });
+    
+        $('#billData').val(JSON.stringify(billData));
+    
+        $.ajax({
+            type: 'POST',
+            url: $(this).attr('action'),
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.redirect) {
+                    window.location.href = response.redirect;
+                } else {
+                    console.error('Unexpected response:', response);
+                    alert('An error occurred while generating the bill. Please try again.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error details:', xhr.responseText);
+                alert(`An error occurred while generating the bill: ${xhr.responseText}`);
+            }
+        });
+    });
+</script>
+{% endblock %}

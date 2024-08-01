@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Bill #{{ bill.bill_number }} - Billing System{% endblock %}
+
+{% block extra_head %}
+<style>
+    .bill-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .bill-details {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    th, td {
+        border: 1th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+    .total-row {
+        font-weight: bold;
+    }
+    .signature {
+        text-align: right;
+        margin-top: 40px;
+    }
+    @media print {
+        .no-print {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bill-header">
+    <h1>Vijaya Lakshmi Enterprises - Tax Invoice</h1>
+    <p>TIN: 37871898203</p>
+</div>
+
+<div class="bill-details">
+    <div>
+        <p><strong>Bill Number:</strong> {{ bill.bill_number }}</p>
+        <p><strong>Date:</strong> {{ bill.date.strftime('%d-%m-%Y') }}</p>
+    </div>
+    <div>
+        <p><strong>Customer Name:</strong> ___________________</p>
+        <p><strong>Address:</strong> ___________________</p>
+    </div>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>S.No</th>
+            <th>Description of Goods</th>
+            <th>HSN Code</th>
+            <th>Unit</th>
+            <th>Qty</th>
+            <th>Rate</th>
+            <th>Amount</th>
+            <th>CGST%</th>
+            <th>CGST Amt</th>
+            <th>SGST%</th>
+            <th>SGST Amt</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in bill.items %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.product.hsn_code }}</td>
+            <td>{{ item.product.unit }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.rate }}</td>
+            <td>{{ item.amount }}</td>
+            <td>{{ item.cgst_percent }}%</td>
+            <td>{{ item.cgst_amount }}</td>
+            <td>{{ item.sgst_percent }}%</td>
+            <td>{{ item.sgst_amount }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr class="total-row">
+            <td colspan="6" style="text-align: right;">Subtotal:</td>
+            <td>{{ bill.subtotal }}</td>
+            <td colspan="2">CGST Total:</td>
+            <td colspan="2">{{ bill.cgst_total }}</td>
+        </tr>
+        <tr class="total-row">
+            <td colspan="6" style="text-align: right;">SGST Total:</td>
+            <td>{{ bill.sgst_total }}</td>
+            <td colspan="2">Grand Total:</td>
+            <td colspan="2">{{ bill.grand_total }}</td>
+        </tr>
+    </tfoot>
+</table>
+
+<div>
+    <p><strong>Amount in words:</strong> ___________________</p>
+    <p><strong>Terms & Conditions:</strong></p>
+    <ol>
+        <li>Goods once sold will not be taken back.</li>
+        <li>E. & O.E.</li>
+    </ol>
+</div>
+
+<div class="signature">
+    <p>For VIJAYA LAKSHMI ENTERPRISES</p>
+    <br>
+    <p>Authorized Signatory</p>
+</div>
+
+<button class="no-print" onclick="window.print()">Print Bill</button>
+{% endblock %}

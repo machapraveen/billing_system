@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Product - Billing System{% endblock %}
+
+{% block content %}
+<h1>Edit Product</h1>
+<form method="POST">
+    <div>
+        <label for="name">Name:<label for="name">Name:</label>
+        <input type="text" id="name" name="name" value="{{ product.name }}" required>
+    </div>
+    <div>
+        <label for="hsn_code">HSN Code:</label>
+        <input type="text" id="hsn_code" name="hsn_code" value="{{ product.hsn_code }}" required>
+    </div>
+    <div>
+        <label for="description">Description:</label>
+        <textarea id="description" name="description">{{ product.description }}</textarea>
+    </div>
+    <div>
+        <label for="unit">Unit:</label>
+        <input type="text" id="unit" name="unit" value="{{ product.unit }}" required>
+    </div>
+    <div>
+        <label for="rate">Rate:</label>
+        <input type="number" id="rate" name="rate" step="0.01" value="{{ product.rate }}" required>
+    </div>
+    <button type="submit">Update Product</button>
+</form>
+{% endblock %}
